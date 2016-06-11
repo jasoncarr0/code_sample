@@ -42,7 +42,15 @@ defmodule CodeSampleIntegrationTest do
     end
   end
 
-  test "We can add a comment to a file"
+  # When we create a comment, the id is returned
+  # Verify that that id points to the correct comment
+  # That that comment exists on the right file
+  # That no other comments are affected
+
+  test "We can add a comment to a file", context do
+    CodeSample.add_comment!(context[:file_id], "Test comment", CodeSample.Authentication.get_token)
+    comments = CodeSample.get_comments!(context[:file_id], CodeSample.Authentication.get_token)
+  end
 
   test "We can delete a comment from a file"
 
