@@ -48,11 +48,23 @@ defmodule CodeSampleIntegrationTest do
   # That no other comments are affected
 
   test "We can add a comment to a file", context do
-    CodeSample.add_comment!(context[:file_id], "Test comment", CodeSample.Authentication.get_token)
+    {:ok, id} = CodeSample.add_comment!(context[:file_id], "Test comment", CodeSample.Authentication.get_token)
     comments = CodeSample.get_comments!(context[:file_id], CodeSample.Authentication.get_token)
+    cids = Enum.map(comments, &Map.get(&1, "id"))
+    Enum.find(cids, &(&1 == id))
   end
 
-  test "We can delete a comment from a file"
+  test "Adding multiple comments from a file responds appropriately", context do
+    CodeSample.add_comment!(context[:file_id], "Test comment 2", CodeSample.Authentication.get_token)
+    assert_raise RuntimeError, fn ->
+      CodeSample.add_comment!(context[:file_id], "Test comment 2", CodeSample.Authentication.get_token)
+    end
+  end
+
+  test "We can delete a comment from a file", context do
+    {:ok, id} = CodeSample.add_comment!(context[:file_id], "Test comment 3", CodeSample.Authentication.get_token)
+    assert :ok = CodeSample.delete_comment!(id, CodeSample.Authentication.get_token)
+  end
 
   test "We can modify a comment on a file"
 end
