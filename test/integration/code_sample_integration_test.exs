@@ -36,30 +36,29 @@ defmodule CodeSampleIntegrationTest do
     assert CodeSample.get_comments!(context[:file_id], CodeSample.Authentication.get_token) == []
   end
 
-  test "Getting comments from a non-existant file raises an exception", context do
+  test "Getting comments from a non-existant file raises an exception", _ do
     assert_raise RuntimeError, fn ->
       CodeSample.get_comments!("1234", CodeSample.Authentication.get_token)
     end
   end
 
-  # When we create a comment, the id is returned
-  # Verify that that id points to the correct comment
-  # That that comment exists on the right file
-  # That no other comments are affected
-
   test "We can add a comment to a file", context do
     {:ok, id} = CodeSample.add_comment!(context[:file_id], "Test comment", CodeSample.Authentication.get_token)
+    
+    # Verify via searching all the comments that the comment is present
+    # We'll test get_comment!/2 later
     comments = CodeSample.get_comments!(context[:file_id], CodeSample.Authentication.get_token)
     Enum.find(comments, fn(c) -> Map.get(c, "id") == id end)
   end
 
-  test "Adding multiple comments from a file responds appropriately", context do
+  test "Adding duplicate comments raises an error appropriately", context do
     CodeSample.add_comment!(context[:file_id], "Test comment 2", CodeSample.Authentication.get_token)
     assert_raise RuntimeError, fn ->
       CodeSample.add_comment!(context[:file_id], "Test comment 2", CodeSample.Authentication.get_token)
     end
   end
 
+  
   test "We can delete a comment from a file", context do
     {:ok, id} = CodeSample.add_comment!(context[:file_id], "Test comment 3", CodeSample.Authentication.get_token)
     is_empty = case CodeSample.delete_comment!(id, CodeSample.Authentication.get_token) do
@@ -69,5 +68,11 @@ defmodule CodeSampleIntegrationTest do
     assert is_empty
   end
 
-  test "We can modify a comment on a file"
+  test "We can modify a comment on a file", context do
+    {:ok, id} = CodeSample.add_comment!(context[:file_id], "Test comment 4", CodeSample.Authentication.get_token)
+    assert (case CodeSample.update_comment!(id, "Modified comment", CodeSample.Authentication.get_token) do
+      :ok -> "Modified comment" == Map.get(CodeSample.get_comment!(id, CodeSample.Authentication.get_token), "message")
+      _ -> false # We shouldn't reach this case as failure is an exception instead
+    end)
+  end
 end

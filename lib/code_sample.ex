@@ -4,7 +4,7 @@ defmodule CodeSample do
   """
 
   @doc """
-    
+    Get a list of each of the comments present on a given file
   """
   @spec get_comments!(String.t, String.t) :: integer
   def get_comments!(file_id, token) do
@@ -18,6 +18,23 @@ defmodule CodeSample do
     end
   end
 
+  @doc """
+    Get a comment from an id and return it
+
+    If successful, will return a tuple of :ok and the decoded comment
+    Otherwise, will raise an error
+  """
+  @spec get_comment!(String.t, String.t) :: {:ok, Map.t}
+  def get_comment!(comment_id, token) do
+    case HTTPoison.get! "https://api.box.com/2.0/comments/#{comment_id}", %{Authorization: "Bearer #{token}"} do
+      %{status_code: 200, body: body} ->
+        body
+        |> Poison.decode!
+      %{status_code: code, body: body} ->
+        raise "Failed to get comment.  Received #{code}: #{body}"
+    end
+
+  end
 
   
   @doc """
@@ -25,7 +42,7 @@ defmodule CodeSample do
     type can be either "file" or "comment" and the id should be
     of the appropriate type.
 
-    Returns the id of the new comment if successful
+    Returns :ok and the id of the new comment if successful
     And throws an error if the target doesn't exist
   """ 
   @spec add_comment!(String.t, String.t, String.t, String.t) :: {:ok, String.t}
@@ -60,7 +77,7 @@ defmodule CodeSample do
     add_comment!/4 with type "file"
 
     Will raise an error if the file isn't found
-    Otherwise, returns the comment
+    Otherwise, returns a tuple of :ok and the comment id
   """
   @spec add_comment!(String.t, String.t, String.t) :: {:ok, String.t}
   def add_comment!(file_id, comment, token) do
@@ -84,11 +101,26 @@ defmodule CodeSample do
     case HTTPoison.delete! "https://api.box.com/2.0/comments/#{comment_id}",
       %{Authorization: "Bearer #{token}"} do
       %{status_code: 204, body: _} -> :ok
-      # TODO: Undocumented what other status errors will be
-      # Test which status codes will be received
       %{status_code: 404, body: _} -> :notfound
       %{status_code: code, body: body} ->
         raise "Failed to delete comment.  Received #{code}: #{body}"
+    end
+  end
+
+  @doc """
+    Updates the comment with the given id and a new comment string
+    
+    If the comment is succesfully updated, :ok is returned
+    Otherwise an error will be raised
+  """
+  @spec update_comment!(String.t, String.t, String.t) :: :ok
+  def update_comment!(comment_id, new_comment, token) do
+    case HTTPoison.put! "https://api.box.com/2.0/comments/#{comment_id}",
+      Poison.encode!(%{message: new_comment } ),
+      %{Authorization: "Bearer #{token}"} do
+          %{status_code: 200, body: _} -> :ok
+      %{status_code: code, body: body} ->
+        raise "Failed to update comment.  Received #{code}: #{body}"
     end
   end
 end
