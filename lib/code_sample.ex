@@ -21,9 +21,12 @@ defmodule CodeSample do
 
   
   @doc """
-    Adds a comment onto a file or another comment when supplied with the
-    appropriate type and id and raises an error if it doesn't exist
-    otherwise returns the comment id
+    Adds a comment onto a file or another comment 
+    type can be either "file" or "comment" and the id should be
+    of the appropriate type.
+
+    Returns the id of the new comment if successful
+    And throws an error if the target doesn't exist
   """ 
   @spec add_comment!(String.t, String.t, String.t, String.t) :: {:ok, String.t}
   def add_comment!(type, id, comment, token) do
@@ -62,18 +65,6 @@ defmodule CodeSample do
   @spec add_comment!(String.t, String.t, String.t) :: {:ok, String.t}
   def add_comment!(file_id, comment, token) do
     add_comment!("file", file_id, comment, token)
-  end
-
-  @doc """
-    Adds a reply to the comment with given id, is equivalent to calling
-    add_comment!/4 with type "comment"
-
-    Will raise an error if the comment isn't found,
-    Otherwise, returns the new comment
-  """
-  @spec add_reply!(String.t, String.t, String.t) :: {:ok, String.t}
-  def add_reply!(comment_id, comment, token) do
-    add_comment!("comment", comment_id, comment, token)
   end
 
 
