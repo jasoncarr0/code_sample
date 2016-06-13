@@ -28,7 +28,7 @@ defmodule CodeSample do
     Returns the id of the new comment if successful
     And throws an error if the target doesn't exist
   """ 
-  @spec add_comment!(String.t, String.t, String.t, String.t) :: {:ok, String.t}
+  @spec add_comment!(String.t, integer, String.t, String.t) :: {:ok, String.t}
   def add_comment!(type, id, comment, token) do
     encoded_comment = 
     # comment tags another user
@@ -62,7 +62,7 @@ defmodule CodeSample do
     Will raise an error if the file isn't found
     Otherwise, returns the comment
   """
-  @spec add_comment!(String.t, String.t, String.t) :: {:ok, String.t}
+  @spec add_comment!(integer, String.t, String.t) :: {:ok, String.t}
   def add_comment!(file_id, comment, token) do
     add_comment!("file", file_id, comment, token)
   end
@@ -79,7 +79,7 @@ defmodule CodeSample do
     values are expected, the post-condition is the same (the file doesn't exist)
     and the event can occur in standard usage through doubled requests
   """
-  @spec delete_comment!(String.t, String.t) :: :ok | :notfound
+  @spec delete_comment!(integer, String.t) :: :ok | :notfound
   def delete_comment!(comment_id, token) do
     case HTTPoison.delete! "https://api.box.com/2.0/comments/#{comment_id}",
       %{Authorization: "Bearer #{token}"} do
@@ -91,4 +91,5 @@ defmodule CodeSample do
         raise "Failed to delete comment.  Received #{code}: #{body}"
     end
   end
+
 end
