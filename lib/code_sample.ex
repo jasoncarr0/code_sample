@@ -50,13 +50,13 @@ defmodule CodeSample do
   def add_comment!(type, id, comment, token) do
     encoded_comment = 
     # comment tags another user
-    if String.contains?(comment, "@") do
-      Poison.encode!(%{item: %{type: type, id: id}, tagged_message: comment } )
-    else
+    # skip for now
+    #if String.contains?(comment, "@") do
+      #  Poison.encode!(%{item: %{type: type, id: id}, tagged_message: comment } )
+      #else
       Poison.encode!(%{item: %{type: type, id: id}, message: comment } )
-    end
+      #end
     case HTTPoison.post! "https://api.box.com/2.0/comments", encoded_comment,
-    #Poison.encode!(%{item: %{type: "file", id: file_id}, message: comment } ),
       %{Authorization: "Bearer #{token}"} do
 
       %{status_code: 201, body: body} ->
@@ -66,7 +66,7 @@ defmodule CodeSample do
         {:ok, comment_id}
       # duplicate comment; We don't get any useful information back
       # such as previous comment id, so just handle identically
-      %{status_code: 409, body: body} ->
+      %{status_code: 409, body: _} ->
         raise "Failed to add comment.  Comment is duplicate of recent comment"
       %{status_code: code, body: body} ->
         raise "Failed to add comment.  Received #{code}: #{body}"
