@@ -43,7 +43,8 @@ defmodule CodeSample do
     of the appropriate type.
 
     Returns :ok and the id of the new comment if successful
-    And throws an error if the target doesn't exist
+    And throws an error if the target doesn't exist or if the comment is a 
+    duplicate of an already existing recent comment on the file
   """ 
   @spec add_comment!(String.t, String.t, String.t, String.t) :: {:ok, String.t}
   def add_comment!(type, id, comment, token) do
@@ -63,10 +64,10 @@ defmodule CodeSample do
                      |> Poison.decode!
                      |> Map.get("id")
         {:ok, comment_id}
-      # TODO: Research output
-      #
+      # duplicate comment; We don't get any useful information back
+      # such as previous comment id, so just handle identically
       %{status_code: 409, body: body} ->
-        raise "Failed to add comment.  Received 409: #{body}"
+        raise "Failed to add comment.  Comment is duplicate of recent comment"
       %{status_code: code, body: body} ->
         raise "Failed to add comment.  Received #{code}: #{body}"
     end
@@ -76,7 +77,8 @@ defmodule CodeSample do
     Adds a comment to the file with given id, is equivalent to calling
     add_comment!/4 with type "file"
 
-    Will raise an error if the file isn't found
+    Will raise an error if the file isn't found or if the file added
+    is a duplicate of a recent comment added to the file
     Otherwise, returns a tuple of :ok and the comment id
   """
   @spec add_comment!(String.t, String.t, String.t) :: {:ok, String.t}
