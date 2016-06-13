@@ -50,8 +50,7 @@ defmodule CodeSampleIntegrationTest do
   test "We can add a comment to a file", context do
     {:ok, id} = CodeSample.add_comment!(context[:file_id], "Test comment", CodeSample.Authentication.get_token)
     comments = CodeSample.get_comments!(context[:file_id], CodeSample.Authentication.get_token)
-    cids = Enum.map(comments, &Map.get(&1, "id"))
-    Enum.find(cids, &(&1 == id))
+    Enum.find(comments, fn(c) -> Map.get(c, "id") == id end)
   end
 
   test "Adding multiple comments from a file responds appropriately", context do
@@ -63,7 +62,11 @@ defmodule CodeSampleIntegrationTest do
 
   test "We can delete a comment from a file", context do
     {:ok, id} = CodeSample.add_comment!(context[:file_id], "Test comment 3", CodeSample.Authentication.get_token)
-    assert :ok = CodeSample.delete_comment!(id, CodeSample.Authentication.get_token)
+    is_empty = case CodeSample.delete_comment!(id, CodeSample.Authentication.get_token) do
+      :ok -> [] == CodeSample.get_comments!(context[:file_id], CodeSample.Authentication.get_token)
+      _ -> false
+    end
+    assert is_empty
   end
 
   test "We can modify a comment on a file"
